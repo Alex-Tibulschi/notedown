@@ -1,0 +1,25 @@
+{
+  "notes": [
+    {
+      "id": "n1",
+      "name": "Shopping list",
+      "creator": "Alex",
+      "content": "Milk\nEggs\nBread",
+      "createdAt": "2026-01-25T12:00:00Z"
+    },
+    {
+      "id": "n2",
+      "name": "Ideas",
+      "creator": "Alex",
+      "content": "Build a notes app",
+      "createdAt": "2026-01-25T12:05:00Z"
+    },
+    {
+      "id": "n3",
+      "name": "Ideas",
+      "creator": "Alex",
+      "content": "Build a nice app",
+      "createdAt": "2026-01-25T12:05:00Z"
+    }
+  ]
+}
