@@ -1,4 +1,4 @@
-fetch('tester.json')
+fetch('https://yd0iaumhk3.execute-api.eu-west-1.amazonaws.com/')
     .then(response => {
 
       if (!response.ok){
