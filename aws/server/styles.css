@@ -17,3 +17,10 @@ button {
   background: #0ea5e9;
   color: #fff;
 }
+
+.big-textarea{
+  width: 400px;
+  height: 120px;
+  font-size: 16px;
+  padding: 8px;
+}

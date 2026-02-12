@@ -1,4 +1,4 @@
-fetch('https://yd0iaumhk3.execute-api.eu-west-1.amazonaws.com/')
+fetch('https://yd0iaumhk3.execute-api.eu-west-1.amazonaws.com/dev-test-1')
     .then(response => {
 
       if (!response.ok){
