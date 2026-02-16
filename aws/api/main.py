@@ -1,9 +1,13 @@
 import json
 import os
 import boto3
-from fastapi import FastAPI
+from botocore.exceptions import ClientError
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
+from pydantic import BaseModel
+import uuid
+import time
 
 app = FastAPI()
 
@@ -15,41 +19,105 @@ app.add_middleware(
 )
 
 s3 = boto3.client("s3")
+dynamodb = boto3.resource("dynamodb")
 
+NOTES_BUCKET = os.environ["s3_storage_bucket"]
+NOTES_TABLE = os.environ["dynamodb_table"]
 
-def get_all_json_notes_in_directory(bucket: str, prefix: str = "") -> dict:
+table = dynamodb.Table(NOTES_TABLE) # type: ignore
+
+class Note(BaseModel):
+    title: str
+    user_id: str
+    content: dict    
+
+def get_all_notes(table, s3, user_id: str | None = None, page_size: int = 100) -> dict:
     notes = []
-    token = None
+    last_key = None
 
     while True:
-        params = {"Bucket": bucket, "Prefix": prefix, "MaxKeys": 1000}
-        if token:
-            params["ContinuationToken"] = token
+        kwargs = {"Limit": page_size}
+        if last_key:
+            kwargs["ExclusiveStartKey"] = last_key
 
-        resp = s3.list_objects_v2(**params)
+        resp = table.scan(**kwargs)
+        items = resp.get("Items", [])
 
-        for item in resp.get("Contents", []):
-            key = item["Key"]
-            if not key.lower().endswith(".json"):
-                continue
+        if user_id is not None:
+            items = [it for it in items if it.get("user_id") == user_id]
 
-            obj = s3.get_object(Bucket=bucket, Key=key)
-            body = obj["Body"].read().decode("utf-8")
-            notes.append(json.loads(body))
+        for meta in items:
+            bucket = meta["s3_bucket"]
+            key = meta["s3_key"]
 
-        if resp.get("IsTruncated"):
-            token = resp["NextContinuationToken"]
-        else:
+            try:
+                obj = s3.get_object(Bucket=bucket, Key=key)
+                content = json.loads(obj["Body"].read().decode("utf-8"))
+            except ClientError as e:
+                content = {"_error": f"S3 get_object failed: {e.response.get('Error', {}).get('Code', 'Unknown')}"}
+            except json.JSONDecodeError:
+                content = {"_error": "Invalid JSON in S3 object"}
+
+            notes.append({**meta, "content": content})
+
+        last_key = resp.get("LastEvaluatedKey")
+        if not last_key:
             break
 
     return {"notes": notes}
 
 
-@app.get("/")
+@app.get("/notes")
 async def root():
-    bucket = os.environ["s3_storage_bucket"]
-    return get_all_json_notes_in_directory(bucket=bucket, prefix="")
+    print("Notes Loading...")
+    return get_all_notes(table=table, s3=s3)
 
+@app.post("/notes")
+def create_note(note: Note):
+    updated_at = int(time.time())
+    note_id = f'{updated_at}#{uuid.uuid4().hex}'
+    
+    s3_key = f'notes/{note.user_id}/{note_id}.json'
+    
+    try:
+        s3.put_object(
+            Bucket= NOTES_BUCKET,
+            Key= s3_key,
+            Body= json.dumps(note.content, separators=(',', ':'), ensure_ascii=False).encode("utf-8"),
+            ContentType= "application/json"
+        )
+    except ClientError as error:
+        raise HTTPException(status_code=502, detail=f"S3 put_object failed: {error.response.get('Error', {}).get('Message', str(error))}")
 
+    
+    item = {
+        "note_id": note_id,
+        "title": note.title,
+        "user_id": note.user_id,
+        "s3_bucket": NOTES_BUCKET,
+        "s3_key": s3_key,
+        "content_type": ["json"],
+        "updated_at": updated_at
+    }
+    
+    try:
+        table.put_item(
+            Item= item,
+            ConditionExpression= "attribute_not_exists(note_id)"
+        )
+    except ClientError as error:
+        raise HTTPException(status_code=502, detail=f"DynamoDB put_item failed: {error.response.get('Error', {}).get('Message', str(error))}")
+    
+    print(f'Posted Note Id: {note_id}')
+    
+    return {
+        "note_id": note_id,
+        "s3_bucket": NOTES_BUCKET,
+        "s3_key": s3_key,
+        "s3_uri": f"s3://{NOTES_BUCKET}/{s3_key}",
+        "updated_at": updated_at
+        
+    }
+    
 # IMPORTANT: define this LAST
 handler = Mangum(app)

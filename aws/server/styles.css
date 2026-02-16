@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: system-ui, Arial, sans-serif;
   margin: 0;
@@ -18,9 +22,24 @@ button {
   color: #fff;
 }
 
+.title-text{
+  width: 100%;
+}
+
 .big-textarea{
-  width: 400px;
-  height: 120px;
-  font-size: 16px;
-  padding: 8px;
+  width: 100%;
+  height: fit-content;
+  resize: none;
+}
+
+.new_note{
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 500px;
+}
+
+.new_note button{
+  align-self: flex-end;
 }

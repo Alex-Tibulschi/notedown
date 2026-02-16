@@ -9,11 +9,12 @@
   </head>
   <body>
     <h1>Notedown</h1>
-    <p>API: <code id="api"></code></p>
     <div id="notes">Loading notes...</div>
-    <textarea name="new_note_text" placeholder="Type here..." class="big-textarea"></textarea>
-    <button type="button" name="go_button">Press me</button>
-    <button type="button" name="go_button">Press me</button>
+    <div id="new_note" class="new_note">
+      <input id="new_note_title" placeholder="Type title..." class="title-text">
+      <textarea id="new_note_text" placeholder="Type here..." class="big-textarea"></textarea>
+      <button type="button" id="new_note_submit">Submit</button>
+    </div>
   </body>
   <script src="/app.js"></script>
 </html>
