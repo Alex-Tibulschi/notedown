@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", loadNotes);
 
 async function submitNote() {
   const title = document.querySelector("#new_note_title").value;
-  const contentText = document.querySelector("#new_note_title").value;
+  const contentText = document.querySelector("#new_note_text").value;
 
   // If the textarea is JSON, parse it; otherwise store as plain text
   let content;

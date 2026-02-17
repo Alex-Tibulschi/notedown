@@ -6,15 +6,91 @@
     <link rel="manifest" href="/manifest.json"/>
     <link rel="stylesheet" href="/styles.css"/>
     <title>Notedown</title>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <h1>Notedown</h1>
-    <div id="notes">Loading notes...</div>
-    <div id="new_note" class="new_note">
-      <input id="new_note_title" placeholder="Type title..." class="title-text">
-      <textarea id="new_note_text" placeholder="Type here..." class="big-textarea"></textarea>
-      <button type="button" id="new_note_submit">Submit</button>
+
+  <body class="bg-gray-100 text-gray-900">
+    <div class="min-h-screen">
+      <header class="sticky top-0 z-10 border-b border-gray-200 bg-white">
+        <div class="mx-auto max-w-6xl px-4 py-3 md:px-6 flex items-center justify-between">
+          <h1 class="text-xl font-bold tracking-tight">Notedown</h1>
+        </div>
+      </header>
+
+      <main class="mx-auto max-w-6xl px-4 py-4 md:px-6">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
+          <aside class="md:col-span-4 lg:col-span-3">
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+              <div class="border-b border-gray-200 px-4 py-3 font-semibold">
+                Notes
+              </div>
+
+              <div
+                id="notes"
+                class="max-h-[75vh] overflow-auto p-3 space-y-3
+                       [&_div]:rounded-lg
+                       [&_div]:border
+                       [&_div]:border-gray-200
+                       [&_div]:bg-gray-50
+                       [&_div]:p-3
+                       [&_h3]:font-semibold
+                       [&_h3]:text-sm
+                       [&_p]:text-xs
+                       [&_p]:text-gray-600
+                       [&_pre]:mt-2
+                       [&_pre]:text-xs
+                       [&_pre]:bg-white
+                       [&_pre]:border
+                       [&_pre]:border-gray-200
+                       [&_pre]:rounded-md
+                       [&_pre]:p-2
+                       [&_pre]:overflow-auto
+                       [&_hr]:hidden"
+              >
+                Loading notes...
+              </div>
+            </div>
+          </aside>
+
+          <section class="md:col-span-8 lg:col-span-9">
+            <div
+              id="new_note"
+              class="new_note rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+            >
+              <div class="border-b border-gray-200 px-4 py-3">
+                <input
+                  id="new_note_title"
+                  placeholder="Type title..."
+                  class="title-text w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                         focus:outline-none focus:ring-2 focus:ring-gray-400"
+                >
+              </div>
+
+              <div class="p-4">
+                <textarea
+                  id="new_note_text"
+                  placeholder="Type here..."
+                  class="big-textarea h-[55vh] w-full resize-none rounded-lg border border-gray-300 p-3 text-sm leading-6
+                         focus:outline-none focus:ring-2 focus:ring-gray-400"
+                ></textarea>
+
+                <div class="mt-4 flex justify-end">
+                  <button
+                    type="button"
+                    id="new_note_submit"
+                    class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white
+                           hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
     </div>
   </body>
+
   <script src="/app.js"></script>
 </html>
