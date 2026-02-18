@@ -58,13 +58,6 @@ jobs:
                   cd build
                   zip -r ../function.zip . -x "*.git*" -x "__pycache__/*" -x "*.pyc"
 
-            - name: Sanity check zip contents
-              run: |
-                  echo "First 60 entries in function.zip:"
-                  unzip -l function.zip | head -n 60
-                  echo ""
-                  echo "Expect to see main.py at the zip root (no aws/api/ prefix)."
-
             - name: Deploy to Lambda
               run: |
                   aws lambda update-function-code \
