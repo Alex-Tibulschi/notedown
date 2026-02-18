@@ -1,71 +1,72 @@
 name: Deploy Lambda (dev)
 
 on:
-  push:
-    branches: ["dev"]
-    paths:
-      - "aws/api/**"
-      - ".github/workflows/deploy-lambda-dev.yml"
+    push:
+        branches: ["dev"]
+        paths:
+            - "aws/api/**"
+            - ".github/workflows/deploy-lambda-dev.yml"
 
 permissions:
-  id-token: write
-  contents: read
+    id-token: write
+    contents: read
 
 concurrency:
-  group: lambda-dev
-  cancel-in-progress: true
+    group: lambda-dev
+    cancel-in-progress: true
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        environment: Notedown Dev
+        runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      FUNCTION_NAME: notedown-api-dev
-      LAMBDA_DIR: aws/api
+        env:
+            AWS_REGION: ${{ vars.AWS_REGION }}
+            FUNCTION_NAME: notedown-api-dev
+            LAMBDA_DIR: aws/api
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+            - name: Configure AWS credentials (OIDC)
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: "pip"
-          cache-dependency-path: ${{ env.LAMBDA_DIR }}/requirements.txt
+            - name: Set up Python 3.13
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.13"
+                  cache: "pip"
+                  cache-dependency-path: ${{ env.LAMBDA_DIR }}/requirements.txt
 
-      - name: Build artifact folder (zip root = handler root)
-        run: |
-          rm -rf build function.zip
-          mkdir -p build
-          cp -R "${LAMBDA_DIR}/." build/
+            - name: Build artifact folder (zip root = handler root)
+              run: |
+                  rm -rf build function.zip
+                  mkdir -p build
+                  cp -R "${LAMBDA_DIR}/." build/
 
-      - name: Install dependencies into build/
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r build/requirements.txt -t build
+            - name: Install dependencies into build/
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r build/requirements.txt -t build
 
-      - name: Create deployment zip
-        run: |
-          cd build
-          zip -r ../function.zip . -x "*.git*" -x "__pycache__/*" -x "*.pyc"
+            - name: Create deployment zip
+              run: |
+                  cd build
+                  zip -r ../function.zip . -x "*.git*" -x "__pycache__/*" -x "*.pyc"
 
-      - name: Sanity check zip contents
-        run: |
-          echo "First 60 entries in function.zip:"
-          unzip -l function.zip | head -n 60
-          echo ""
-          echo "Expect to see main.py at the zip root (no aws/api/ prefix)."
+            - name: Sanity check zip contents
+              run: |
+                  echo "First 60 entries in function.zip:"
+                  unzip -l function.zip | head -n 60
+                  echo ""
+                  echo "Expect to see main.py at the zip root (no aws/api/ prefix)."
 
-      - name: Deploy to Lambda
-        run: |
-          aws lambda update-function-code \
-            --function-name "${FUNCTION_NAME}" \
-            --zip-file "fileb://function.zip"
+            - name: Deploy to Lambda
+              run: |
+                  aws lambda update-function-code \
+                    --function-name "${FUNCTION_NAME}" \
+                    --zip-file "fileb://function.zip"
