@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="320" viewBox="0 0 1200 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Notedown logo">
+  <defs>
+    <linearGradient id="ndBlue" x1="40" y1="40" x2="260" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#63B3FF"/>
+      <stop offset="1" stop-color="#3F9CFF"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B1220" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Icon -->
+  <g filter="url(#softShadow)">
+    <circle cx="160" cy="160" r="124" fill="url(#ndBlue)"/>
+  </g>
+
+  <!-- Stylized N -->
+  <path
+    d="M106 230
+       C94 188 98 120 120 96
+       C142 72 176 78 188 104
+       C202 136 186 162 186 186
+       C186 214 212 232 236 214
+       C260 196 254 126 270 92"
+    stroke="#FFFFFF"
+    stroke-width="52"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Wordmark -->
+  <text x="340" y="190"
+        font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
+        font-size="110"
+        letter-spacing="-2">
+    <tspan fill="#0F172A" font-weight="750">Note</tspan>
+    <tspan fill="#334155" font-weight="600">down</tspan>
+  </text>
+
+  <!-- Subtle underline -->
+  <path d="M340 220 H820" stroke="#E2E8F0" stroke-width="10" stroke-linecap="round"/>
+</svg>
