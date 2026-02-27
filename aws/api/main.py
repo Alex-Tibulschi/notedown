@@ -2,10 +2,11 @@ import json
 import os
 import boto3
 from botocore.exceptions import ClientError
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from pydantic import BaseModel
+from typing import Optional
 import uuid
 import time
 
@@ -26,12 +27,31 @@ NOTES_TABLE = os.environ["dynamodb_table"]
 
 table = dynamodb.Table(NOTES_TABLE) # type: ignore
 
+""" --- Authorization --- """
+def get_cognito_claims(request: Request) -> dict:
+    # Extracts and returns the Cognito claims from the request object
+    event = request.scope.get("aws.event") or {}
+    rc = event.get("requestContext") or {}
+    auth = rc.get("authorizer") or {}
+
+    claims = auth.get("claims") or {}
+    if claims:
+        return claims
+
+    raise HTTPException(status_code=401, detail="Missing/invalid authorizer claims")
+
+def get_user_sub(request: Request) -> str:
+    claims = get_cognito_claims(request)
+    sub = claims.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="Missing sub claim")
+    return sub
 class Note(BaseModel):
     title: str
     user_id: str
     content: dict    
 
-def get_all_notes(table, s3, user_id: str | None = None, page_size: int = 100) -> dict:
+def get_all_notes(table, s3, user_id: str | None = None, page_size: int = 10) -> dict:
     notes = []
     last_key = None
 
@@ -68,9 +88,10 @@ def get_all_notes(table, s3, user_id: str | None = None, page_size: int = 100) -
 
 
 @app.get("/notes")
-async def root():
+async def root(request: Request):
+    user_sub = get_user_sub(request)
     print("Notes Loading...")
-    return get_all_notes(table=table, s3=s3)
+    return get_all_notes(table=table, s3=s3, user_id=user_sub)
 
 @app.post("/notes")
 def create_note(note: Note):

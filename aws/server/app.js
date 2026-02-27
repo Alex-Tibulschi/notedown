@@ -18,6 +18,7 @@ export const userManager = new UserManager({
 export async function signOutRedirect () {
   resetTokenDisplay();
   updateAuthButtons(null);
+  await loadNotes(null);
 
   const clientId = cognitoAuthConfig.client_id;
   const logoutUri = cognitoAuthConfig.redirect_uri;
@@ -81,11 +82,13 @@ async function handleSigninCallback() {
       updateTokenDisplay(user);
       window.history.replaceState({}, document.title, window.location.pathname);
       updateAuthButtons(user);
+      await loadNotes(user);
       return user;
     } catch (error) {
         console.error("Cognito callback failed", error);
         resetTokenDisplay();
         updateAuthButtons(null);
+        await loadNotes(null);
         return null;
     }
   }
@@ -94,11 +97,13 @@ async function handleSigninCallback() {
   if (existingUser) {
     updateTokenDisplay(existingUser);
     updateAuthButtons(existingUser);
+    await loadNotes(existingUser);
     return existingUser;
   }
 
   resetTokenDisplay();
   updateAuthButtons(null);
+  await loadNotes(null);
   return null;
 }
 
@@ -125,15 +130,20 @@ if (submitButton) {
 window.addEventListener("DOMContentLoaded", async () => {
   setupHandlers();
   updateAuthButtons(null);
+  await loadNotes(null);
   await handleSigninCallback();
-  await loadNotes();
 });
 
-async function loadNotes() {
+async function loadNotes(user) {
+  if (!user || user.expired) throw new Error("Not signed in");
+
   try {
+
     const res = await fetch(`${API_BASE}/notes`, {
       method: "GET",
-      headers: { "Accept": "application/json" },
+      headers: { "Accept": "application/json",
+        "Authorization": 'Bearer ${user.access_token}',
+       },
     });
 
     if (!res.ok) {
