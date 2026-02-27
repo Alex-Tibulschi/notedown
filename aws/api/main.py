@@ -48,7 +48,6 @@ def get_user_sub(request: Request) -> str:
     return sub
 class Note(BaseModel):
     title: str
-    user_id: str
     content: dict    
 
 def get_all_notes(table, s3, user_id: str | None = None, page_size: int = 10) -> dict:
@@ -94,11 +93,12 @@ async def root(request: Request):
     return get_all_notes(table=table, s3=s3, user_id=user_sub)
 
 @app.post("/notes")
-def create_note(note: Note):
+def create_note(note: Note, request: Request):
     updated_at = int(time.time())
     note_id = f'{updated_at}#{uuid.uuid4().hex}'
+    user_sub = get_user_sub(request)
     
-    s3_key = f'notes/{note.user_id}/{note_id}.json'
+    s3_key = f'notes/{user_sub}/{note_id}.json'
     
     try:
         s3.put_object(
@@ -114,7 +114,7 @@ def create_note(note: Note):
     item = {
         "note_id": note_id,
         "title": note.title,
-        "user_id": note.user_id,
+        "user_id": user_sub,
         "s3_bucket": NOTES_BUCKET,
         "s3_key": s3_key,
         "content_type": ["json"],
