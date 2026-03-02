@@ -123,8 +123,16 @@ if (signOutButton) {
 const submitButton = getElement("new_note_submit");
 
 if (submitButton) {
-  const user = userManager.getUser();
-  submitButton.addEventListener("click", submitNote(user));
+  submitButton.addEventListener("click", async () => {
+    const user = await userManager.getUser();
+
+    if (!user || user.expired) {
+      alert("You must be signed in.");
+      return;
+    }
+
+    await submitNote(user);
+  });
 }
 }
 
@@ -144,7 +152,7 @@ async function loadNotes(user) {
       const res = await fetch(`${API_BASE}/notes`, {
         method: "GET",
         headers: { Accept: "application/json",
-          Authorization: "Bearer " + user.access_token,
+          Authorization: "Bearer " + user.id_token,
         },
       });
 
@@ -211,10 +219,9 @@ async function submitNote(user) {
 
   const response = await fetch(`${API_BASE}/notes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + user.access_token },
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + user.id_token },
     body: JSON.stringify({
       title,
-      user_id: "alex",
       content,
     }),
   });
